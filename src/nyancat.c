@@ -71,6 +71,8 @@
 #include <termios.h>
 #endif
 
+char* color_hex = NULL;
+
 #ifdef ECHO
 #undef ECHO
 #endif
@@ -347,6 +349,15 @@ void usage(char * argv[]) {
 			argv[0]);
 }
 
+/*
+ * Convert RGB values to an ANSI escape sequence for 24-bit color
+ */
+char* get_ansi_color(int r, int g, int b) {
+    static char buffer[20]; // Buffer to store escape code
+    sprintf(buffer, "\033[38;2;%d;%d;%dm", r, g, b);
+    return buffer;
+}
+
 int main(int argc, char ** argv) {
 
 	char *term = NULL;
@@ -378,6 +389,7 @@ int main(int argc, char ** argv) {
 		{"max-cols",   required_argument, 0, 'C'},
 		{"width",      required_argument, 0, 'W'},
 		{"height",     required_argument, 0, 'H'},
+		{"color",      required_argument, 0, 'o'},
 		{0,0,0,0}
 	};
 
@@ -442,8 +454,17 @@ int main(int argc, char ** argv) {
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
 				break;
+			case 'o':
+				color_hex = optarg; // Assign the provided argument to the color_hex variable
+				break;
 			default:
 				break;
+		}
+		if (color_hex != NULL) {
+			int r, g, b; // Variables to store RGB components
+			sscanf(color_hex, "%02x%02x%02x", &r, &g, &b); // Parse hex color to integers
+			char* ansi_color = get_ansi_color(r, g, b); // Convert RGB to ANSI color
+			// Assuming `ansi_color` is now used appropriately following here
 		}
 	}
 
@@ -861,18 +882,23 @@ int main(int argc, char ** argv) {
 					/* Otherwise, get the color from the animation frame. */
 					color = frames[i][y][x];
 				}
-				if (always_escape) {
-					/* Text mode (or "Always Send Color Escapes") */
-					printf("%s", colors[(int)color]);
-				} else {
-					if (color != last && colors[(int)color]) {
-						/* Normal Mode, send escape (because the color changed) */
-						last = color;
-						printf("%s%s", colors[(int)color], output);
+				if (colors[(int)color] != NULL) {
+					if (always_escape) {
+						/* Text mode (or "Always Send Color Escapes") */
+						printf("%s%c", colors[(int)color], color);
 					} else {
-						/* Same color, just send the output characters */
-						printf("%s", output);
+						if (color != last) {
+							/* Normal Mode, send escape (because the color changed) */
+							last = color;
+							printf("%s%c", colors[(int)color], color);
+						} else {
+							/* Same color, just send the output characters */
+							printf("%c", color);
+						}
 					}
+				} else {
+					/* Continue using default color */
+					printf("\033[0m%c", color); /* Default to no color */
 				}
 			}
 			/* End of row, send newline */
