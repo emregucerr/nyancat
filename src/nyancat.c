@@ -95,6 +95,7 @@
  * or raw characters (ie, for vt220 mode)
  */
 const char * colors[256] = {NULL};
+char *custom_pink_color = NULL;  // Global variable to hold the custom color
 
 /*
  * For most modes, we output spaces, but for some
@@ -378,6 +379,7 @@ int main(int argc, char ** argv) {
 		{"max-cols",   required_argument, 0, 'C'},
 		{"width",      required_argument, 0, 'W'},
 		{"height",     required_argument, 0, 'H'},
+		{"color",      required_argument, 0, 'p'},
 		{0,0,0,0}
 	};
 
@@ -441,6 +443,9 @@ int main(int argc, char ** argv) {
 			case 'H':
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
+				break;
+			case 'p':
+				custom_pink_color = optarg;  // Assign the argument provided with -p to custom_pink_color
 				break;
 			default:
 				break;
@@ -592,10 +597,20 @@ int main(int argc, char ** argv) {
 		/* Do our terminal detection */
 		if (strstr(term, "xterm")) {
 			ttype = 1; /* 256-color, spaces */
+			if (custom_pink_color) {
+				colors[226] = custom_pink_color;  // Set custom pink color for xterm
+			} else {
+				colors[226] = "\033[38;5;226m";  // Default xterm pink
+			}
 		} else if (strstr(term, "toaru")) {
 			ttype = 1; /* emulates xterm */
 		} else if (strstr(term, "linux")) {
 			ttype = 3; /* Spaces and blink attribute */
+			if (custom_pink_color) {
+				colors['d'] = custom_pink_color;  // Set custom color for pink in Linux terminals
+			} else {
+				colors['d'] = "\033[35m";  // Default Linux console pink
+			}
 		} else if (strstr(term, "vtnt")) {
 			ttype = 5; /* Extended ASCII fallback == Windows */
 		} else if (strstr(term, "cygwin")) {
