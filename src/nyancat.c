@@ -348,6 +348,16 @@ void usage(char * argv[]) {
 }
 
 int main(int argc, char ** argv) {
+    int red = 0, green = 0, blue = 0;
+    if (argc > 3) {
+        red = atoi(argv[1]);
+        green = atoi(argv[2]);
+        blue = atoi(argv[3]);
+        if (red > 0 || green > 0 || blue > 0) {
+            colors[COLOR_RAINBOW_RED] = "\033[48;2;" + red + ";" + green + ";" + blue + "m";
+            colors[COLOR_RAINBOW_GREEN] = "\033[48;2;" + red + ";" + green + ";" + blue + "m";
+        }
+    }
 
 	char *term = NULL;
 	unsigned int k;
@@ -378,6 +388,7 @@ int main(int argc, char ** argv) {
 		{"max-cols",   required_argument, 0, 'C'},
 		{"width",      required_argument, 0, 'W'},
 		{"height",     required_argument, 0, 'H'},
+		{"color",      required_argument, 0, 'k'},
 		{0,0,0,0}
 	};
 
@@ -441,6 +452,12 @@ int main(int argc, char ** argv) {
 			case 'H':
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
+				break;
+			case 'k':
+				if (sscanf(optarg, "%d,%d,%d", &red, &green, &blue) != 3) {
+					fprintf(stderr, "Invalid color format. Expected format: R,G,B where R, G, and B are integers.\n");
+					exit(EXIT_FAILURE);
+				}
 				break;
 			default:
 				break;
