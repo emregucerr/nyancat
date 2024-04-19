@@ -343,11 +343,13 @@ void usage(char * argv[]) {
 			" -C --max-cols   \033[3mCrop the animation from the right\033[0m\n"
 			" -W --width      \033[3mCrop the animation to the given width\033[0m\n"
 			" -H --height     \033[3mCrop the animation to the given height\033[0m\n"
+			" -p --pink       \033[3mSet the color of the pink poptart (e.g. 175, FF69B4)\033[0m\n"
 			" -h --help       \033[3mShow this help message.\033[0m\n",
 			argv[0]);
 }
 
 int main(int argc, char ** argv) {
+    const char *pink_color = "175";
 
 	char *term = NULL;
 	unsigned int k;
@@ -378,6 +380,7 @@ int main(int argc, char ** argv) {
 		{"max-cols",   required_argument, 0, 'C'},
 		{"width",      required_argument, 0, 'W'},
 		{"height",     required_argument, 0, 'H'},
+		{"pink",       required_argument, 0, 'p'},
 		{0,0,0,0}
 	};
 
@@ -441,6 +444,9 @@ int main(int argc, char ** argv) {
 			case 'H':
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
+				break;
+			case 'p':
+				pink_color = optarg;
 				break;
 			default:
 				break;
@@ -634,7 +640,9 @@ int main(int argc, char ** argv) {
 			colors['.']  = "\033[48;5;231m"; /* White stars */
 			colors['\''] = "\033[48;5;16m";  /* Black border */
 			colors['@']  = "\033[48;5;230m"; /* Tan poptart */
-			colors['$']  = "\033[48;5;175m"; /* Pink poptart */
+			char buf[16];
+			snprintf(buf, sizeof(buf), "\033[48;5;%sm", pink_color);
+			colors['$'] = strdup(buf);
 			colors['-']  = "\033[48;5;162m"; /* Red poptart */
 			colors['>']  = "\033[48;5;196m"; /* Red rainbow */
 			colors['&']  = "\033[48;5;214m"; /* Orange rainbow */
