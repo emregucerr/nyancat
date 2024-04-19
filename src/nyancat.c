@@ -101,6 +101,7 @@ const char * colors[256] = {NULL};
  * we will use block characters (or even nothing)
  */
 const char * output = "  ";
+int pink_color_code = 175; // Default to 'light pink' as the initial color before command-line overrides
 
 /*
  * Are we currently in telnet mode?
@@ -378,6 +379,7 @@ int main(int argc, char ** argv) {
 		{"max-cols",   required_argument, 0, 'C'},
 		{"width",      required_argument, 0, 'W'},
 		{"height",     required_argument, 0, 'H'},
+		{"pink",       required_argument, 0, 'p'},
 		{0,0,0,0}
 	};
 
@@ -442,12 +444,27 @@ int main(int argc, char ** argv) {
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
 				break;
+			case 'p':
+				pink_color_code = atoi(optarg); // Convert argument to integer
+				if (pink_color_code < 0 || pink_color_code > 255) { // Validate that the color code is a valid ANSI code
+					fprintf(stderr, "Invalid color code. Please provide a value between 0 and 255.\n");
+					exit(EXIT_FAILURE);
+				}
+				break;
 			default:
 				break;
 		}
 	}
 
 	if (telnet) {
+		/* Allocate memory for custom pink color */
+		colors['$'] = malloc(20); // Allocate 20 bytes for the color code string
+		if (!colors['$']) { // Check if the allocation failed
+			fprintf(stderr, "Failed to allocate memory for pink color.\n");
+			exit(EXIT_FAILURE);
+		}
+		snprintf(colors['$'], 20, "\033[48;5;%dm", pink_color_code); // Format the color code into the allocated memory
+
 		/* Telnet mode */
 
 		/* show_intro is implied unless skip_intro was set */
@@ -644,6 +661,7 @@ int main(int argc, char ** argv) {
 			colors[';']  = "\033[48;5;19m";  /* Dark blue rainbow */
 			colors['*']  = "\033[48;5;240m"; /* Gray cat face */
 			colors['%']  = "\033[48;5;175m"; /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			break;
 		case 2:
 			colors[',']  = "\033[104m";      /* Blue background */
@@ -660,6 +678,7 @@ int main(int argc, char ** argv) {
 			colors[';']  = "\033[44m";       /* Dark blue rainbow */
 			colors['*']  = "\033[100m";      /* Gray cat face */
 			colors['%']  = "\033[105m";      /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			break;
 		case 3:
 			colors[',']  = "\033[25;44m";    /* Blue background */
@@ -676,6 +695,7 @@ int main(int argc, char ** argv) {
 			colors[';']  = "\033[5;44m";     /* Dark blue rainbow */
 			colors['*']  = "\033[5;40m";     /* Gray cat face */
 			colors['%']  = "\033[5;45m";     /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			break;
 		case 4:
 			colors[',']  = "\033[0;34;44m";  /* Blue background */
@@ -692,6 +712,8 @@ int main(int argc, char ** argv) {
 			colors[';']  = "\033[0;34;44m";  /* Dark blue rainbow */
 			colors['*']  = "\033[1;30;40m";  /* Gray cat face */
 			colors['%']  = "\033[1;35;45m";  /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			output = "██";
 			break;
 		case 5:
@@ -726,6 +748,7 @@ int main(int argc, char ** argv) {
 			colors[';']  = "$$";             /* Dark blue rainbow */
 			colors['*']  = ";;";             /* Gray cat face */
 			colors['%']  = "()";             /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			always_escape = 1;
 			break;
 		case 7:
@@ -743,6 +766,7 @@ int main(int argc, char ** argv) {
 			colors[';']  = "$";             /* Dark blue rainbow */
 			colors['*']  = ";";             /* Gray cat face */
 			colors['%']  = "o";             /* Pink cheeks */
+			if (!colors['$']) { colors['$'] = "\033[48;5;175m"; /* Set default pink color */ }
 			always_escape = 1;
 			terminal_width = 40;
 			break;
