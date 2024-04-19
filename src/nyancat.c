@@ -49,6 +49,7 @@
  * WITH THE SOFTWARE.
  */
 
+#include <unistd.h>
 #define _XOPEN_SOURCE 700
 #define _DARWIN_C_SOURCE 1
 #define _BSD_SOURCE
@@ -361,23 +362,26 @@ int main(int argc, char ** argv) {
 	char show_intro = 0;
 	char skip_intro = 0;
 
+	char *poptart_color = "\033[48;5;175m"; // Default pink color
+
 	/* Long option names */
 	static struct option long_opts[] = {
-		{"help",       no_argument,       0, 'h'},
-		{"telnet",     no_argument,       0, 't'},
-		{"intro",      no_argument,       0, 'i'},
-		{"skip-intro", no_argument,       0, 'I'},
-		{"no-counter", no_argument,       0, 'n'},
-		{"no-title",   no_argument,       0, 's'},
-		{"no-clear",   no_argument,       0, 'e'},
-		{"delay",      required_argument, 0, 'd'},
-		{"frames",     required_argument, 0, 'f'},
-		{"min-rows",   required_argument, 0, 'r'},
-		{"max-rows",   required_argument, 0, 'R'},
-		{"min-cols",   required_argument, 0, 'c'},
-		{"max-cols",   required_argument, 0, 'C'},
-		{"width",      required_argument, 0, 'W'},
-		{"height",     required_argument, 0, 'H'},
+		{"help",         no_argument,       0, 'h'},
+		{"telnet",       no_argument,       0, 't'},
+		{"intro",        no_argument,       0, 'i'},
+		{"skip-intro",   no_argument,       0, 'I'},
+		{"no-counter",   no_argument,       0, 'n'},
+		{"no-title",     no_argument,       0, 's'},
+		{"no-clear",     no_argument,       0, 'e'},
+		{"delay",        required_argument, 0, 'd'},
+		{"frames",       required_argument, 0, 'f'},
+		{"min-rows",     required_argument, 0, 'r'},
+		{"max-rows",     required_argument, 0, 'R'},
+		{"min-cols",     required_argument, 0, 'c'},
+		{"max-cols",     required_argument, 0, 'C'},
+		{"width",        required_argument, 0, 'W'},
+		{"height",       required_argument, 0, 'H'},
+		{"poptart-color",required_argument, 0, 'p'},
 		{0,0,0,0}
 	};
 
@@ -386,7 +390,7 @@ int main(int argc, char ** argv) {
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "eshiItnd:f:r:R:c:C:W:H:", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "eshiItnd:f:r:R:c:C:W:H:p:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
@@ -441,6 +445,9 @@ int main(int argc, char ** argv) {
 			case 'H':
 				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
 				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
+				break;
+			case 'p':
+				poptart_color = optarg;  // Set poptart color based on user input
 				break;
 			default:
 				break;
@@ -682,7 +689,7 @@ int main(int argc, char ** argv) {
 			colors['.']  = "\033[1;37;47m";  /* White stars */
 			colors['\''] = "\033[0;30;40m";  /* Black border */
 			colors['@']  = "\033[1;37;47m";  /* Tan poptart */
-			colors['$']  = "\033[1;35;45m";  /* Pink poptart */
+			colors['$'] = poptart_color; // Set custom poptart color via user input
 			colors['-']  = "\033[1;31;41m";  /* Red poptart */
 			colors['>']  = "\033[1;31;41m";  /* Red rainbow */
 			colors['&']  = "\033[0;33;43m";  /* Orange rainbow */
